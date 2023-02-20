@@ -1,0 +1,46 @@
+name: Azure Static Web Apps CI/CD
+
+pr:
+  branches:
+    include:
+      - main
+trigger:
+  branches:
+    include:
+      - main
+
+jobs:
+- job: build_and_deploy_job
+  displayName: Build and Deploy Job
+  condition: or(eq(variables['Build.Reason'], 'Manual'),or(eq(variables['Build.Reason'], 'PullRequest'),eq(variables['Build.Reason'], 'IndividualCI')))
+  pool:
+    vmImage: ubuntu-latest
+  variables:
+  - group: Azure-Static-Web-Apps-blue-river-041ba4e03-variable-group
+  steps:
+  - checkout: self
+    submodules: true
+      
+  - task: DownloadSecureFile@1
+    name: "dotenvProduction"
+    inputs:
+      secureFile: '.env.production.local'
+    displayName: "Download .env.production.local"
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: "$(Agent.TempDirectory)"
+      contents: ".env.production.local"
+      targetFolder: "$(System.DefaultWorkingDirectory)"
+    displayName: "Import .env.production.local"
+      
+  - task: AzureStaticWebApp@0
+    inputs:
+      azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN_BLUE_RIVER_041BA4E03)
+###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
+# For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
+      app_location: "/" # App source code path
+      api_location: "" # Api source code path - optional
+      output_location: "dist" # Built app content directory - optional
+###### End of Repository/Build Configurations ######
+
